@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+// Public Pages
 import Index from "./pages/Index";
 import Treks from "./pages/Treks";
 import TrekDetail from "./pages/TrekDetail";
@@ -16,6 +18,14 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import NotFound from "./pages/NotFound";
+
+// Admin Pages
+import AdminLogin from "./pages/admin/Login";
+import AdminDashboard from "./pages/admin/Dashboard";
+import TrekManager from "./pages/admin/TrekManager";
+import BlogManager from "./pages/admin/BlogManager";
+import MediaLibrary from "./pages/admin/MediaLibrary";
+import AdminSettings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
