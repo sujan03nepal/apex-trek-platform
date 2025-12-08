@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Home", href: "/" },
-  { 
-    name: "Treks", 
+  {
+    name: "Treks",
     href: "/treks",
     submenu: [
       { name: "All Treks", href: "/treks" },
@@ -18,7 +18,15 @@ const navigation = [
     ]
   },
   { name: "About", href: "/about" },
-  { name: "Blog", href: "/blog" },
+  {
+    name: "Resources",
+    href: "/blog",
+    submenu: [
+      { name: "Blog & Guides", href: "/blog" },
+      { name: "Gallery", href: "/gallery" },
+      { name: "FAQ", href: "/faq" },
+    ]
+  },
   { name: "Contact", href: "/contact" },
 ];
 
