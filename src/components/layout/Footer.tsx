@@ -18,11 +18,11 @@ const footerLinks = {
     { name: "Contact", href: "/contact" },
   ],
   support: [
-    { name: "FAQs", href: "/faqs" },
-    { name: "Booking Policy", href: "/policies/booking" },
-    { name: "Cancellation Policy", href: "/policies/cancellation" },
-    { name: "Travel Insurance", href: "/policies/insurance" },
-    { name: "Packing List", href: "/resources/packing-list" },
+    { name: "FAQs", href: "/faq" },
+    { name: "Gallery", href: "/gallery" },
+    { name: "Terms & Conditions", href: "/terms" },
+    { name: "Privacy Policy", href: "/privacy" },
+    { name: "Booking Info", href: "/contact" },
   ],
 };
 
@@ -167,10 +167,10 @@ export function Footer() {
               ))}
             </div>
             <div className="flex items-center gap-4 text-sm text-primary-foreground/60">
-              <Link to="/policies/privacy" className="hover:text-accent transition-colors">
+              <Link to="/privacy" className="hover:text-accent transition-colors">
                 Privacy Policy
               </Link>
-              <Link to="/policies/terms" className="hover:text-accent transition-colors">
+              <Link to="/terms" className="hover:text-accent transition-colors">
                 Terms of Service
               </Link>
             </div>
