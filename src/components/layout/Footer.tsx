@@ -167,10 +167,10 @@ export function Footer() {
               ))}
             </div>
             <div className="flex items-center gap-4 text-sm text-primary-foreground/60">
-              <Link to="/policies/privacy" className="hover:text-accent transition-colors">
+              <Link to="/privacy" className="hover:text-accent transition-colors">
                 Privacy Policy
               </Link>
-              <Link to="/policies/terms" className="hover:text-accent transition-colors">
+              <Link to="/terms" className="hover:text-accent transition-colors">
                 Terms of Service
               </Link>
             </div>
