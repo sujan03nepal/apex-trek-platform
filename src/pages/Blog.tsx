@@ -1,88 +1,27 @@
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, ArrowRight, User } from "lucide-react";
-
-const blogPosts = [
-  {
-    id: "1",
-    slug: "ultimate-everest-base-camp-guide",
-    title: "The Ultimate Everest Base Camp Trekking Guide 2024",
-    excerpt: "Everything you need to know about trekking to Everest Base Camp, from preparation tips to day-by-day itinerary insights.",
-    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800",
-    category: "Guides",
-    author: "Pemba Sherpa",
-    date: "2024-03-15",
-    readTime: "12 min read",
-    featured: true,
-  },
-  {
-    id: "2",
-    slug: "best-time-to-trek-nepal",
-    title: "Best Time to Trek in Nepal: A Seasonal Guide",
-    excerpt: "Discover the ideal months for trekking in different regions of Nepal, from spring rhododendrons to clear autumn skies.",
-    image: "https://images.unsplash.com/photo-1585409677983-0f6c41ca9c3b?w=800",
-    category: "Tips",
-    author: "Maya Tamang",
-    date: "2024-03-10",
-    readTime: "8 min read",
-    featured: false,
-  },
-  {
-    id: "3",
-    slug: "altitude-sickness-prevention",
-    title: "Altitude Sickness: Prevention and Treatment Guide",
-    excerpt: "Learn how to recognize, prevent, and treat altitude sickness for a safe and enjoyable Himalayan trekking experience.",
-    image: "https://images.unsplash.com/photo-1464278533981-50106e6176b1?w=800",
-    category: "Health",
-    author: "Dr. Karma Dorje",
-    date: "2024-03-05",
-    readTime: "10 min read",
-    featured: false,
-  },
-  {
-    id: "4",
-    slug: "packing-list-himalayan-trek",
-    title: "Essential Packing List for Your Himalayan Trek",
-    excerpt: "A comprehensive packing guide with everything you need for trekking in Nepal, including gear recommendations and tips.",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
-    category: "Guides",
-    author: "Pemba Sherpa",
-    date: "2024-02-28",
-    readTime: "15 min read",
-    featured: false,
-  },
-  {
-    id: "5",
-    slug: "sherpa-culture-traditions",
-    title: "Understanding Sherpa Culture and Traditions",
-    excerpt: "Explore the rich cultural heritage of the Sherpa people, from Buddhist traditions to mountain life.",
-    image: "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800",
-    category: "Culture",
-    author: "Tashi Sherpa",
-    date: "2024-02-20",
-    readTime: "9 min read",
-    featured: false,
-  },
-  {
-    id: "6",
-    slug: "solo-female-trekking-nepal",
-    title: "Solo Female Trekking in Nepal: Safety Tips & Insights",
-    excerpt: "A comprehensive guide for women traveling solo in Nepal, with safety tips, cultural insights, and inspiring stories.",
-    image: "https://images.unsplash.com/photo-1571401835393-8c5f35328320?w=800",
-    category: "Tips",
-    author: "Maya Tamang",
-    date: "2024-02-15",
-    readTime: "11 min read",
-    featured: false,
-  },
-];
-
-const categories = ["All", "Guides", "Tips", "Health", "Culture", "Stories"];
+import { useBlogPosts } from "@/hooks/useBlogPosts";
+import { Calendar, Clock, ArrowRight, User, Loader2 } from "lucide-react";
 
 export default function Blog() {
-  const featuredPost = blogPosts.find(post => post.featured);
-  const regularPosts = blogPosts.filter(post => !post.featured);
+  const { posts, loading } = useBlogPosts();
+
+  // Get featured posts
+  const featuredPost = posts.find(post => post.is_featured && post.is_published);
+  const regularPosts = posts.filter(post => !post.is_featured && post.is_published);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        </div>
+      </Layout>
+    );
+  }
+
+  const defaultImage = "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop";
 
   return (
     <Layout>
@@ -103,22 +42,6 @@ export default function Blog() {
 
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
-          {/* Categories */}
-          <div className="flex flex-wrap gap-2 mb-12">
-            {categories.map((category) => (
-              <button
-                key={category}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  category === "All"
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-muted text-muted-foreground hover:bg-accent/10 hover:text-accent"
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-
           {/* Featured Post */}
           {featuredPost && (
             <Link 
@@ -128,9 +51,12 @@ export default function Blog() {
               <div className="grid lg:grid-cols-2 gap-8 bg-card rounded-2xl overflow-hidden border border-border shadow-soft hover:shadow-medium transition-shadow">
                 <div className="h-64 lg:h-auto overflow-hidden">
                   <img
-                    src={featuredPost.image}
+                    src={featuredPost.featured_image_url || defaultImage}
                     alt={featuredPost.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = defaultImage;
+                    }}
                   />
                 </div>
                 <div className="p-8 flex flex-col justify-center">
@@ -138,30 +64,28 @@ export default function Blog() {
                     <Badge className="bg-accent/20 text-accent border-0">
                       Featured
                     </Badge>
-                    <Badge variant="outline">{featuredPost.category}</Badge>
                   </div>
                   <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-4 group-hover:text-accent transition-colors">
                     {featuredPost.title}
                   </h2>
                   <p className="text-muted-foreground mb-6">
-                    {featuredPost.excerpt}
+                    {featuredPost.excerpt || "Interesting read"}
                   </p>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      {featuredPost.author}
-                    </div>
-                    <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      {new Date(featuredPost.date).toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}
+                      {featuredPost.created_at 
+                        ? new Date(featuredPost.created_at).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric',
+                          year: 'numeric'
+                        })
+                        : 'Recently'
+                      }
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
-                      {featuredPost.readTime}
+                      {featuredPost.view_count || 0} views
                     </div>
                   </div>
                 </div>
@@ -169,42 +93,53 @@ export default function Blog() {
             </Link>
           )}
 
-          {/* Regular Posts Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {regularPosts.map((post) => (
-              <Link
-                key={post.id}
-                to={`/blog/${post.slug}`}
-                className="block bg-card rounded-xl overflow-hidden border border-border shadow-soft hover:shadow-medium transition-all group"
-              >
-                <div className="h-48 overflow-hidden">
-                  <img
-                    src={post.image}
-                    alt={post.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="p-6">
-                  <Badge variant="outline" className="mb-3">
-                    {post.category}
-                  </Badge>
-                  <h3 className="font-serif text-xl font-bold text-foreground mb-2 group-hover:text-accent transition-colors line-clamp-2">
-                    {post.title}
-                  </h3>
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                    {post.excerpt}
-                  </p>
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>{new Date(post.date).toLocaleDateString('en-US', { 
-                      month: 'short', 
-                      day: 'numeric'
-                    })}</span>
-                    <span>{post.readTime}</span>
+          {/* Posts Grid */}
+          {regularPosts.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {regularPosts.map((post) => (
+                <Link
+                  key={post.id}
+                  to={`/blog/${post.slug}`}
+                  className="block bg-card rounded-xl overflow-hidden border border-border shadow-soft hover:shadow-medium transition-all group"
+                >
+                  <div className="h-48 overflow-hidden">
+                    <img
+                      src={post.featured_image_url || defaultImage}
+                      alt={post.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = defaultImage;
+                      }}
+                    />
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                  <div className="p-6">
+                    <h3 className="font-serif text-xl font-bold text-foreground mb-2 group-hover:text-accent transition-colors line-clamp-2">
+                      {post.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                      {post.excerpt || "Interesting read"}
+                    </p>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>
+                        {post.created_at
+                          ? new Date(post.created_at).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric'
+                          })
+                          : 'Recently'
+                        }
+                      </span>
+                      <span>{post.view_count || 0} views</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg">No blog posts published yet.</p>
+            </div>
+          )}
         </div>
       </section>
     </Layout>
