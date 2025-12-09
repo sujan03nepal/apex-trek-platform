@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Mountain, Mail, Phone, MapPin, Facebook, Instagram, Youtube, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSettings } from "@/hooks/useSettings";
 
 const footerLinks = {
   treks: [
@@ -26,14 +27,22 @@ const footerLinks = {
   ],
 };
 
-const socialLinks = [
-  { name: "Facebook", icon: Facebook, href: "#" },
-  { name: "Instagram", icon: Instagram, href: "#" },
-  { name: "Youtube", icon: Youtube, href: "#" },
-  { name: "Twitter", icon: Twitter, href: "#" },
-];
-
 export function Footer() {
+  const { settings } = useSettings();
+
+  const socialLinks = [
+    { name: "Facebook", icon: Facebook, href: settings?.facebook_url || "#" },
+    { name: "Instagram", icon: Instagram, href: settings?.instagram_url || "#" },
+    { name: "Youtube", icon: Youtube, href: settings?.youtube_url || "#" },
+    { name: "Twitter", icon: Twitter, href: settings?.twitter_url || "#" },
+  ];
+
+  const primaryEmail = settings?.email_addresses?.[0] || "info@nepaltreks.com";
+  const primaryPhone = settings?.phone_numbers?.[0] || "+977 123 456 7890";
+  const address = settings?.office_address || "Thamel, Kathmandu, Nepal";
+  const footerText = settings?.footer_text || "Your trusted partner for authentic Himalayan adventures since 2010. We create life-changing experiences in the world's most spectacular mountains.";
+  const copyrightText = settings?.copyright_text || `© ${new Date().getFullYear()} Nepal Treks. All rights reserved.`;
+
   return (
     <footer className="bg-gradient-mountain text-primary-foreground">
       {/* Newsletter Section */}
@@ -75,21 +84,20 @@ export function Footer() {
               </div>
             </Link>
             <p className="text-primary-foreground/70 mb-6 max-w-sm">
-              Your trusted partner for authentic Himalayan adventures since 2010. 
-              We create life-changing experiences in the world's most spectacular mountains.
+              {footerText}
             </p>
             <div className="space-y-2 text-sm">
-              <a href="mailto:info@nepaltreks.com" className="flex items-center gap-2 text-primary-foreground/70 hover:text-accent transition-colors">
+              <a href={`mailto:${primaryEmail}`} className="flex items-center gap-2 text-primary-foreground/70 hover:text-accent transition-colors">
                 <Mail className="h-4 w-4" />
-                info@nepaltreks.com
+                {primaryEmail}
               </a>
-              <a href="tel:+9771234567890" className="flex items-center gap-2 text-primary-foreground/70 hover:text-accent transition-colors">
+              <a href={`tel:${primaryPhone.replace(/\s/g, '')}`} className="flex items-center gap-2 text-primary-foreground/70 hover:text-accent transition-colors">
                 <Phone className="h-4 w-4" />
-                +977 123 456 7890
+                {primaryPhone}
               </a>
               <div className="flex items-start gap-2 text-primary-foreground/70">
                 <MapPin className="h-4 w-4 mt-0.5" />
-                <span>Thamel, Kathmandu, Nepal</span>
+                <span>{address}</span>
               </div>
             </div>
           </div>
@@ -152,13 +160,15 @@ export function Footer() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-primary-foreground/60">
-              © {new Date().getFullYear()} Nepal Treks. All rights reserved.
+              {copyrightText}
             </p>
             <div className="flex items-center gap-4">
               {socialLinks.map((social) => (
                 <a
                   key={social.name}
                   href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="p-2 rounded-full bg-primary-foreground/10 hover:bg-accent hover:text-accent-foreground transition-all duration-200"
                   aria-label={social.name}
                 >

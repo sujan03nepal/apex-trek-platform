@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useSettings } from "@/hooks/useSettings";
+import { toast } from "sonner";
 import {
   Upload,
   Save,
@@ -13,212 +14,177 @@ import {
   X,
   Code,
   Settings as SettingsIcon,
+  Loader2,
 } from "lucide-react";
 
-interface Settings {
-  // Brand & Visual
-  companyName: string;
-  tagline: string;
-  logoUrl: string;
-  darkLogoUrl: string;
-  faviconUrl: string;
-  heroImageUrl: string;
-  footerBannerUrl: string;
-
-  // Contact Information
-  phoneNumbers: string[];
-  emailAddresses: string[];
-  whatsapp: string;
-  viber: string;
-  emergencyContact: string;
-
-  // Office Location
-  officeAddress: string;
-  mapEmbedLink: string;
-  latitude: string;
-  longitude: string;
-
-  // Social Media
-  facebookUrl: string;
-  instagramUrl: string;
-  youtubeUrl: string;
-  tiktokUrl: string;
-  twitterUrl: string;
-  linkedinUrl: string;
-
-  // SEO Defaults
-  defaultMetaTitle: string;
-  defaultMetaDescription: string;
-  defaultKeywords: string[];
-  defaultOgImage: string;
-
-  // Footer
-  footerText: string;
-  copyrightText: string;
-
-  // Global Scripts
-  googleAnalyticsCode: string;
-  tagManagerCode: string;
-  facebookPixelCode: string;
-}
-
 export default function AdminSettings() {
+  const { settings, loading, updateSettings } = useSettings();
   const [activeTab, setActiveTab] = useState("brand");
+  const [saving, setSaving] = useState(false);
   const [newPhone, setNewPhone] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newKeyword, setNewKeyword] = useState("");
 
-  const [settings, setSettings] = useState<Settings>({
-    companyName: "Nepal Treks",
-    tagline: "Adventure Awaits",
-    logoUrl: "",
-    darkLogoUrl: "",
-    faviconUrl: "",
-    heroImageUrl: "",
-    footerBannerUrl: "",
-    phoneNumbers: ["+977 123 456 7890"],
-    emailAddresses: ["info@nepaltreks.com"],
-    whatsapp: "+977 987 654 3210",
-    viber: "+977 9876543210",
-    emergencyContact: "+977 9841234567",
-    officeAddress: "Thamel, Kathmandu, Nepal",
-    mapEmbedLink:
-      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.0478619839087!2d85.30755831506293!3d27.71473798279149!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb18fcb77fd4f3%3A0x58099b1deffed8d4!2sThamel%2C%20Kathmandu%2044600%2C%20Nepal!5e0!3m2!1sen!2sus!4v1645012345678!5m2!1sen!2sus",
-    latitude: "27.7149",
-    longitude: "85.3076",
-    facebookUrl: "https://facebook.com/nepaltreks",
-    instagramUrl: "https://instagram.com/nepaltreks",
-    youtubeUrl: "https://youtube.com/nepaltreks",
-    tiktokUrl: "https://tiktok.com/@nepaltreks",
-    twitterUrl: "https://twitter.com/nepaltreks",
-    linkedinUrl: "https://linkedin.com/company/nepaltreks",
-    defaultMetaTitle: "Nepal Trekking Adventures",
-    defaultMetaDescription:
-      "Explore the most beautiful treks in Nepal with expert guides and authentic experiences",
-    defaultKeywords: ["Nepal", "trekking", "Himalayas", "adventure", "hiking"],
-    defaultOgImage: "",
-    footerText:
-      "Nepal Treks is your trusted partner for authentic Himalayan adventures since 2010.",
-    copyrightText: `© ${new Date().getFullYear()} Nepal Treks. All rights reserved.`,
-    googleAnalyticsCode: "G-XXXXXXX",
-    tagManagerCode: "GTM-XXXXXXX",
-    facebookPixelCode: "123456789",
+  const [formData, setFormData] = useState({
+    logo_url: "",
+    dark_logo_url: "",
+    favicon_url: "",
+    hero_image_url: "",
+    footer_banner_url: "",
+    phone_numbers: [] as string[],
+    email_addresses: [] as string[],
+    whatsapp: "",
+    viber: "",
+    emergency_contact: "",
+    office_address: "",
+    map_embed_link: "",
+    latitude: "",
+    longitude: "",
+    facebook_url: "",
+    instagram_url: "",
+    youtube_url: "",
+    tiktok_url: "",
+    twitter_url: "",
+    linkedin_url: "",
+    default_meta_title: "",
+    default_meta_description: "",
+    default_keywords: [] as string[],
+    default_og_image: "",
+    footer_text: "",
+    copyright_text: "",
+    google_analytics_code: "",
+    tag_manager_code: "",
+    facebook_pixel_code: "",
   });
+
+  useEffect(() => {
+    if (settings) {
+      setFormData({
+        logo_url: settings.logo_url || "",
+        dark_logo_url: settings.dark_logo_url || "",
+        favicon_url: settings.favicon_url || "",
+        hero_image_url: settings.hero_image_url || "",
+        footer_banner_url: settings.footer_banner_url || "",
+        phone_numbers: settings.phone_numbers || [],
+        email_addresses: settings.email_addresses || [],
+        whatsapp: settings.whatsapp || "",
+        viber: settings.viber || "",
+        emergency_contact: settings.emergency_contact || "",
+        office_address: settings.office_address || "",
+        map_embed_link: settings.map_embed_link || "",
+        latitude: settings.latitude?.toString() || "",
+        longitude: settings.longitude?.toString() || "",
+        facebook_url: settings.facebook_url || "",
+        instagram_url: settings.instagram_url || "",
+        youtube_url: settings.youtube_url || "",
+        tiktok_url: settings.tiktok_url || "",
+        twitter_url: settings.twitter_url || "",
+        linkedin_url: settings.linkedin_url || "",
+        default_meta_title: settings.default_meta_title || "",
+        default_meta_description: settings.default_meta_description || "",
+        default_keywords: settings.default_keywords || [],
+        default_og_image: settings.default_og_image || "",
+        footer_text: settings.footer_text || "",
+        copyright_text: settings.copyright_text || "",
+        google_analytics_code: settings.google_analytics_code || "",
+        tag_manager_code: settings.tag_manager_code || "",
+        facebook_pixel_code: settings.facebook_pixel_code || "",
+      });
+    }
+  }, [settings]);
 
   const tabs = [
     { id: "brand", label: "Brand & Visual", icon: SettingsIcon },
     { id: "contact", label: "Contact Info", icon: Phone },
     { id: "location", label: "Location", icon: MapPin },
     { id: "social", label: "Social Media", icon: Globe },
-    { id: "seo", label: "SEO Defaults", icon: "📊" },
-    { id: "footer", label: "Footer", icon: "📄" },
+    { id: "seo", label: "SEO Defaults" },
+    { id: "footer", label: "Footer" },
     { id: "scripts", label: "Scripts", icon: Code },
   ];
 
   const addPhone = () => {
     if (newPhone.trim()) {
-      setSettings({
-        ...settings,
-        phoneNumbers: [...settings.phoneNumbers, newPhone],
-      });
+      setFormData({ ...formData, phone_numbers: [...formData.phone_numbers, newPhone] });
       setNewPhone("");
     }
   };
 
   const removePhone = (index: number) => {
-    setSettings({
-      ...settings,
-      phoneNumbers: settings.phoneNumbers.filter((_, i) => i !== index),
-    });
+    setFormData({ ...formData, phone_numbers: formData.phone_numbers.filter((_, i) => i !== index) });
   };
 
   const addEmail = () => {
     if (newEmail.trim()) {
-      setSettings({
-        ...settings,
-        emailAddresses: [...settings.emailAddresses, newEmail],
-      });
+      setFormData({ ...formData, email_addresses: [...formData.email_addresses, newEmail] });
       setNewEmail("");
     }
   };
 
   const removeEmail = (index: number) => {
-    setSettings({
-      ...settings,
-      emailAddresses: settings.emailAddresses.filter((_, i) => i !== index),
-    });
+    setFormData({ ...formData, email_addresses: formData.email_addresses.filter((_, i) => i !== index) });
   };
 
   const addKeyword = () => {
     if (newKeyword.trim()) {
-      setSettings({
-        ...settings,
-        defaultKeywords: [...settings.defaultKeywords, newKeyword],
-      });
+      setFormData({ ...formData, default_keywords: [...formData.default_keywords, newKeyword] });
       setNewKeyword("");
     }
   };
 
   const removeKeyword = (index: number) => {
-    setSettings({
-      ...settings,
-      defaultKeywords: settings.defaultKeywords.filter((_, i) => i !== index),
+    setFormData({ ...formData, default_keywords: formData.default_keywords.filter((_, i) => i !== index) });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    const { error } = await updateSettings({
+      ...formData,
+      latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+      longitude: formData.longitude ? parseFloat(formData.longitude) : null,
     });
+    setSaving(false);
+    
+    if (error) {
+      toast.error("Failed to save settings: " + error);
+    } else {
+      toast.success("Settings saved successfully!");
+    }
   };
 
-  const handleSave = () => {
-    console.log("Settings saved:", settings);
-    alert("Settings saved successfully!");
-    // Here you would call your API to save settings
-  };
-
-  const FileUploadBox = ({
-    label,
-    value,
-    onChange,
-  }: {
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-  }) => (
-    <div>
-      <label className="block text-sm font-medium text-foreground mb-2">
-        {label}
-      </label>
-      <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-accent transition-colors cursor-pointer bg-muted/30">
-        <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-        <p className="font-medium text-foreground mb-1">Upload File</p>
-        <p className="text-xs text-muted-foreground">PNG, JPG, ICO up to 5MB</p>
-        {value && (
-          <p className="text-xs text-accent mt-2">✓ File selected</p>
-        )}
-      </div>
-    </div>
-  );
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="font-serif text-3xl font-bold text-foreground mb-2">
-            Website Settings
-          </h1>
-          <p className="text-muted-foreground">
-            Manage global website configuration
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="font-serif text-3xl font-bold text-foreground mb-2">
+              Website Settings
+            </h1>
+            <p className="text-muted-foreground">Manage global website configuration</p>
+          </div>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+            Save Changes
+          </Button>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 border-b border-border overflow-x-auto pb-0">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-3 font-medium border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === tab.id
-                  ? "border-accent text-accent"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                activeTab === tab.id ? "border-accent text-accent" : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               {tab.label}
@@ -226,112 +192,44 @@ export default function AdminSettings() {
           ))}
         </div>
 
-        {/* Brand Settings */}
         {activeTab === "brand" && (
           <div className="bg-card rounded-xl border border-border p-8 space-y-6">
-            <div>
-              <h3 className="font-semibold text-lg text-foreground mb-4">
-                Brand Information
-              </h3>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Company Name
-                  </label>
+            <h3 className="font-semibold text-lg text-foreground mb-4">Media Files</h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              {[
+                { label: "Logo URL", key: "logo_url" },
+                { label: "Dark Logo URL", key: "dark_logo_url" },
+                { label: "Favicon URL", key: "favicon_url" },
+                { label: "Hero Image URL", key: "hero_image_url" },
+                { label: "Footer Banner URL", key: "footer_banner_url" },
+                { label: "Default OG Image URL", key: "default_og_image" },
+              ].map((field) => (
+                <div key={field.key}>
+                  <label className="block text-sm font-medium text-foreground mb-2">{field.label}</label>
                   <input
                     type="text"
-                    value={settings.companyName}
-                    onChange={(e) =>
-                      setSettings({ ...settings, companyName: e.target.value })
-                    }
+                    value={(formData as any)[field.key]}
+                    onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
+                    placeholder="https://..."
                     className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Tagline
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.tagline}
-                    onChange={(e) =>
-                      setSettings({ ...settings, tagline: e.target.value })
-                    }
-                    className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-border pt-6">
-              <h3 className="font-semibold text-lg text-foreground mb-4">
-                Media Files
-              </h3>
-              <div className="grid md:grid-cols-2 gap-6">
-                <FileUploadBox
-                  label="Logo"
-                  value={settings.logoUrl}
-                  onChange={(value) =>
-                    setSettings({ ...settings, logoUrl: value })
-                  }
-                />
-                <FileUploadBox
-                  label="Dark Logo"
-                  value={settings.darkLogoUrl}
-                  onChange={(value) =>
-                    setSettings({ ...settings, darkLogoUrl: value })
-                  }
-                />
-                <FileUploadBox
-                  label="Favicon"
-                  value={settings.faviconUrl}
-                  onChange={(value) =>
-                    setSettings({ ...settings, faviconUrl: value })
-                  }
-                />
-                <FileUploadBox
-                  label="Hero Image"
-                  value={settings.heroImageUrl}
-                  onChange={(value) =>
-                    setSettings({ ...settings, heroImageUrl: value })
-                  }
-                />
-              </div>
-              <div className="mt-6">
-                <FileUploadBox
-                  label="Footer Banner"
-                  value={settings.footerBannerUrl}
-                  onChange={(value) =>
-                    setSettings({ ...settings, footerBannerUrl: value })
-                  }
-                />
-              </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Contact Settings */}
         {activeTab === "contact" && (
           <div className="bg-card rounded-xl border border-border p-8 space-y-6">
-            <h3 className="font-semibold text-lg text-foreground">
-              Contact Information
-            </h3>
+            <h3 className="font-semibold text-lg text-foreground">Contact Information</h3>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Phone Numbers
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Phone Numbers</label>
               <div className="space-y-2 mb-4">
-                {settings.phoneNumbers.map((phone, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 bg-muted p-3 rounded-lg"
-                  >
+                {formData.phone_numbers.map((phone, index) => (
+                  <div key={index} className="flex items-center gap-2 bg-muted p-3 rounded-lg">
                     <span className="flex-1 text-foreground">{phone}</span>
-                    <button
-                      onClick={() => removePhone(index)}
-                      className="p-1 hover:bg-destructive/20 rounded transition-colors"
-                    >
+                    <button onClick={() => removePhone(index)} className="p-1 hover:bg-destructive/20 rounded">
                       <X className="h-4 w-4 text-destructive" />
                     </button>
                   </div>
@@ -345,27 +243,17 @@ export default function AdminSettings() {
                   placeholder="Add new phone number"
                   className="flex-1 px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
                 />
-                <Button onClick={addPhone}>
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <Button onClick={addPhone}><Plus className="h-4 w-4" /></Button>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Email Addresses
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Email Addresses</label>
               <div className="space-y-2 mb-4">
-                {settings.emailAddresses.map((email, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 bg-muted p-3 rounded-lg"
-                  >
+                {formData.email_addresses.map((email, index) => (
+                  <div key={index} className="flex items-center gap-2 bg-muted p-3 rounded-lg">
                     <span className="flex-1 text-foreground">{email}</span>
-                    <button
-                      onClick={() => removeEmail(index)}
-                      className="p-1 hover:bg-destructive/20 rounded transition-colors"
-                    >
+                    <button onClick={() => removeEmail(index)} className="p-1 hover:bg-destructive/20 rounded">
                       <X className="h-4 w-4 text-destructive" />
                     </button>
                   </div>
@@ -379,180 +267,22 @@ export default function AdminSettings() {
                   placeholder="Add new email"
                   className="flex-1 px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
                 />
-                <Button onClick={addEmail}>
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <Button onClick={addEmail}><Plus className="h-4 w-4" /></Button>
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  WhatsApp Number
-                </label>
-                <input
-                  type="tel"
-                  value={settings.whatsapp}
-                  onChange={(e) =>
-                    setSettings({ ...settings, whatsapp: e.target.value })
-                  }
-                  className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Viber Number
-                </label>
-                <input
-                  type="tel"
-                  value={settings.viber}
-                  onChange={(e) =>
-                    setSettings({ ...settings, viber: e.target.value })
-                  }
-                  className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Emergency Contact
-                </label>
-                <input
-                  type="tel"
-                  value={settings.emergencyContact}
-                  onChange={(e) =>
-                    setSettings({
-                      ...settings,
-                      emergencyContact: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Location Settings */}
-        {activeTab === "location" && (
-          <div className="bg-card rounded-xl border border-border p-8 space-y-6">
-            <h3 className="font-semibold text-lg text-foreground">
-              Office Location
-            </h3>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Office Address
-              </label>
-              <textarea
-                value={settings.officeAddress}
-                onChange={(e) =>
-                  setSettings({ ...settings, officeAddress: e.target.value })
-                }
-                rows={3}
-                className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent resize-none"
-              />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Latitude
-                </label>
-                <input
-                  type="text"
-                  value={settings.latitude}
-                  onChange={(e) =>
-                    setSettings({ ...settings, latitude: e.target.value })
-                  }
-                  className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Longitude
-                </label>
-                <input
-                  type="text"
-                  value={settings.longitude}
-                  onChange={(e) =>
-                    setSettings({ ...settings, longitude: e.target.value })
-                  }
-                  className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Google Map Embed Link
-              </label>
-              <textarea
-                value={settings.mapEmbedLink}
-                onChange={(e) =>
-                  setSettings({ ...settings, mapEmbedLink: e.target.value })
-                }
-                rows={2}
-                className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent resize-none font-mono text-xs"
-                placeholder="Paste your Google Maps iframe embed code here"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Social Media Settings */}
-        {activeTab === "social" && (
-          <div className="bg-card rounded-xl border border-border p-8 space-y-6">
-            <h3 className="font-semibold text-lg text-foreground">
-              Social Media Links
-            </h3>
-            <div className="space-y-4">
+            <div className="grid md:grid-cols-3 gap-6">
               {[
-                {
-                  key: "facebookUrl",
-                  label: "Facebook",
-                  placeholder: "https://facebook.com/...",
-                },
-                {
-                  key: "instagramUrl",
-                  label: "Instagram",
-                  placeholder: "https://instagram.com/...",
-                },
-                {
-                  key: "youtubeUrl",
-                  label: "YouTube",
-                  placeholder: "https://youtube.com/...",
-                },
-                {
-                  key: "tiktokUrl",
-                  label: "TikTok",
-                  placeholder: "https://tiktok.com/@...",
-                },
-                {
-                  key: "twitterUrl",
-                  label: "Twitter/X",
-                  placeholder: "https://twitter.com/...",
-                },
-                {
-                  key: "linkedinUrl",
-                  label: "LinkedIn",
-                  placeholder: "https://linkedin.com/company/...",
-                },
-              ].map((social) => (
-                <div key={social.key}>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    {social.label}
-                  </label>
+                { label: "WhatsApp", key: "whatsapp" },
+                { label: "Viber", key: "viber" },
+                { label: "Emergency Contact", key: "emergency_contact" },
+              ].map((field) => (
+                <div key={field.key}>
+                  <label className="block text-sm font-medium text-foreground mb-2">{field.label}</label>
                   <input
-                    type="url"
-                    value={
-                      settings[social.key as keyof Settings] as string
-                    }
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        [social.key]: e.target.value,
-                      })
-                    }
-                    placeholder={social.placeholder}
+                    type="tel"
+                    value={(formData as any)[field.key]}
+                    onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
@@ -561,75 +291,106 @@ export default function AdminSettings() {
           </div>
         )}
 
-        {/* SEO Settings */}
-        {activeTab === "seo" && (
+        {activeTab === "location" && (
           <div className="bg-card rounded-xl border border-border p-8 space-y-6">
-            <h3 className="font-semibold text-lg text-foreground">
-              SEO Defaults
-            </h3>
-
+            <h3 className="font-semibold text-lg text-foreground">Office Location</h3>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Default Meta Title
-              </label>
-              <input
-                type="text"
-                value={settings.defaultMetaTitle}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    defaultMetaTitle: e.target.value,
-                  })
-                }
-                maxLength={60}
-                className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                {settings.defaultMetaTitle.length}/60 characters
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Default Meta Description
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Office Address</label>
               <textarea
-                value={settings.defaultMetaDescription}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    defaultMetaDescription: e.target.value,
-                  })
-                }
-                maxLength={160}
+                value={formData.office_address}
+                onChange={(e) => setFormData({ ...formData, office_address: e.target.value })}
                 rows={3}
                 className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent resize-none"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                {settings.defaultMetaDescription.length}/160 characters
-              </p>
             </div>
-
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Latitude</label>
+                <input
+                  type="text"
+                  value={formData.latitude}
+                  onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Longitude</label>
+                <input
+                  type="text"
+                  value={formData.longitude}
+                  onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                  className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </div>
+            </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Default Keywords
-              </label>
-              <div className="space-y-2 mb-4">
-                {settings.defaultKeywords.map((keyword, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 bg-muted p-3 rounded-lg"
-                  >
-                    <Badge className="bg-accent text-accent-foreground">
-                      {keyword}
-                    </Badge>
-                    <button
-                      onClick={() => removeKeyword(index)}
-                      className="p-1 hover:bg-destructive/20 rounded ml-auto transition-colors"
-                    >
-                      <X className="h-4 w-4 text-destructive" />
-                    </button>
-                  </div>
+              <label className="block text-sm font-medium text-foreground mb-2">Google Map Embed Link</label>
+              <textarea
+                value={formData.map_embed_link}
+                onChange={(e) => setFormData({ ...formData, map_embed_link: e.target.value })}
+                rows={2}
+                className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === "social" && (
+          <div className="bg-card rounded-xl border border-border p-8 space-y-6">
+            <h3 className="font-semibold text-lg text-foreground">Social Media Links</h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              {[
+                { label: "Facebook", key: "facebook_url" },
+                { label: "Instagram", key: "instagram_url" },
+                { label: "YouTube", key: "youtube_url" },
+                { label: "TikTok", key: "tiktok_url" },
+                { label: "Twitter/X", key: "twitter_url" },
+                { label: "LinkedIn", key: "linkedin_url" },
+              ].map((field) => (
+                <div key={field.key}>
+                  <label className="block text-sm font-medium text-foreground mb-2">{field.label}</label>
+                  <input
+                    type="url"
+                    value={(formData as any)[field.key]}
+                    onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "seo" && (
+          <div className="bg-card rounded-xl border border-border p-8 space-y-6">
+            <h3 className="font-semibold text-lg text-foreground">SEO Defaults</h3>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Default Meta Title</label>
+              <input
+                type="text"
+                value={formData.default_meta_title}
+                onChange={(e) => setFormData({ ...formData, default_meta_title: e.target.value })}
+                className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Default Meta Description</label>
+              <textarea
+                value={formData.default_meta_description}
+                onChange={(e) => setFormData({ ...formData, default_meta_description: e.target.value })}
+                rows={3}
+                className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent resize-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Default Keywords</label>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {formData.default_keywords.map((keyword, index) => (
+                  <span key={index} className="inline-flex items-center gap-1 px-3 py-1 bg-accent/20 text-accent rounded-full text-sm">
+                    {keyword}
+                    <button onClick={() => removeKeyword(index)}><X className="h-3 w-3" /></button>
+                  </span>
                 ))}
               </div>
               <div className="flex gap-2">
@@ -640,141 +401,71 @@ export default function AdminSettings() {
                   placeholder="Add keyword"
                   className="flex-1 px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
                 />
-                <Button onClick={addKeyword}>
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <Button onClick={addKeyword}><Plus className="h-4 w-4" /></Button>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Default OG Image
-              </label>
-              <FileUploadBox
-                label="OG Image"
-                value={settings.defaultOgImage}
-                onChange={(value) =>
-                  setSettings({ ...settings, defaultOgImage: value })
-                }
-              />
             </div>
           </div>
         )}
 
-        {/* Footer Settings */}
         {activeTab === "footer" && (
           <div className="bg-card rounded-xl border border-border p-8 space-y-6">
-            <h3 className="font-semibold text-lg text-foreground">
-              Footer Content
-            </h3>
-
+            <h3 className="font-semibold text-lg text-foreground">Footer Content</h3>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Footer Text
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Footer Text</label>
               <textarea
-                value={settings.footerText}
-                onChange={(e) =>
-                  setSettings({ ...settings, footerText: e.target.value })
-                }
-                rows={4}
+                value={formData.footer_text}
+                onChange={(e) => setFormData({ ...formData, footer_text: e.target.value })}
+                rows={3}
                 className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent resize-none"
               />
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Copyright Text
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Copyright Text</label>
               <input
                 type="text"
-                value={settings.copyrightText}
-                onChange={(e) =>
-                  setSettings({ ...settings, copyrightText: e.target.value })
-                }
+                value={formData.copyright_text}
+                onChange={(e) => setFormData({ ...formData, copyright_text: e.target.value })}
                 className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
           </div>
         )}
 
-        {/* Scripts Settings */}
         {activeTab === "scripts" && (
           <div className="bg-card rounded-xl border border-border p-8 space-y-6">
-            <h3 className="font-semibold text-lg text-foreground">
-              Global Scripts & Codes
-            </h3>
-
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6">
-              <p className="text-sm text-yellow-600">
-                ⚠️ Add tracking and analytics codes carefully. Invalid codes
-                may break your website.
-              </p>
-            </div>
-
+            <h3 className="font-semibold text-lg text-foreground">Analytics & Tracking Scripts</h3>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Google Analytics ID
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Google Analytics Code</label>
               <input
                 type="text"
-                value={settings.googleAnalyticsCode}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    googleAnalyticsCode: e.target.value,
-                  })
-                }
+                value={formData.google_analytics_code}
+                onChange={(e) => setFormData({ ...formData, google_analytics_code: e.target.value })}
                 placeholder="G-XXXXXXXXXX"
-                className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent font-mono text-sm"
+                className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Google Tag Manager ID
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Google Tag Manager Code</label>
               <input
                 type="text"
-                value={settings.tagManagerCode}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    tagManagerCode: e.target.value,
-                  })
-                }
+                value={formData.tag_manager_code}
+                onChange={(e) => setFormData({ ...formData, tag_manager_code: e.target.value })}
                 placeholder="GTM-XXXXXXX"
-                className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent font-mono text-sm"
+                className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Facebook Pixel ID
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Facebook Pixel Code</label>
               <input
                 type="text"
-                value={settings.facebookPixelCode}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    facebookPixelCode: e.target.value,
-                  })
-                }
+                value={formData.facebook_pixel_code}
+                onChange={(e) => setFormData({ ...formData, facebook_pixel_code: e.target.value })}
                 placeholder="123456789"
-                className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent font-mono text-sm"
+                className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
           </div>
         )}
-
-        {/* Save Button */}
-        <div className="flex justify-end sticky bottom-6">
-          <Button onClick={handleSave} variant="gold" size="lg">
-            <Save className="h-4 w-4 mr-2" />
-            Save All Settings
-          </Button>
-        </div>
       </div>
     </AdminLayout>
   );
