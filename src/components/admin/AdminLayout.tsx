@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,15 +11,20 @@ import {
   Image,
   Settings,
   LogOut,
-  ChevronRight,
+  Calendar,
+  MessageSquare,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 const adminNavigation = [
   { icon: Home, label: "Dashboard", href: "/admin/dashboard" },
   { icon: MapPin, label: "Treks", href: "/admin/treks" },
+  { icon: Calendar, label: "Bookings", href: "/admin/bookings" },
   { icon: BookOpen, label: "Blog", href: "/admin/blog" },
   { icon: Image, label: "Media Library", href: "/admin/media" },
+  { icon: MessageSquare, label: "Contacts", href: "/admin/contacts" },
   { icon: Settings, label: "Settings", href: "/admin/settings" },
 ];
 
@@ -31,11 +36,30 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, loading, signOut } = useAuth();
 
-  const handleLogout = () => {
-    localStorage.removeItem("admin_token");
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/admin/login");
+    }
+  }, [user, loading, navigate]);
+
+  const handleLogout = async () => {
+    await signOut();
     navigate("/admin/login");
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,7 +95,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
                 location.pathname === item.href
                   ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
               <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -82,6 +106,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
         {isSidebarOpen && (
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
+            <div className="text-xs text-muted-foreground mb-3 truncate">
+              {user.email}
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -119,18 +146,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <div className="flex items-center gap-4">
               <Link
                 to="/"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                target="_blank"
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
+                <ExternalLink className="h-4 w-4" />
                 View Website
               </Link>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Mountain, Phone, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSettings } from "@/hooks/useSettings";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -35,6 +36,9 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
   const location = useLocation();
+  const { settings } = useSettings();
+
+  const primaryPhone = settings?.phone_numbers?.[0] || "+977 123 456 7890";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -128,12 +132,12 @@ export function Navbar() {
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center gap-3">
-            <a href="tel:+9771234567890" className={cn(
+            <a href={`tel:${primaryPhone.replace(/\s/g, '')}`} className={cn(
               "flex items-center gap-2 text-sm font-medium",
               textColor
             )}>
               <Phone className="h-4 w-4" />
-              <span>+977 123 456 7890</span>
+              <span>{primaryPhone}</span>
             </a>
             <Button variant={isScrolled || !isHome ? "gold" : "hero"} size="sm" asChild>
               <Link to="/contact">Book Now</Link>
@@ -183,9 +187,9 @@ export function Navbar() {
                 </div>
               ))}
               <div className="px-4 pt-4 space-y-3">
-                <a href="tel:+9771234567890" className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <a href={`tel:${primaryPhone.replace(/\s/g, '')}`} className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <Phone className="h-4 w-4" />
-                  <span>+977 123 456 7890</span>
+                  <span>{primaryPhone}</span>
                 </a>
                 <Button variant="gold" className="w-full" asChild>
                   <Link to="/contact">Book Now</Link>
