@@ -1,31 +1,62 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Mail, Lock, Mountain } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate("/admin/dashboard");
+    }
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    // Simulate login - in real app, this would call an API
-    setTimeout(() => {
-      if (email === "admin@nepaltreks.com" && password === "admin123") {
-        localStorage.setItem("admin_token", "demo_token_" + Date.now());
-        navigate("/admin/dashboard");
-      } else {
-        setError("Invalid credentials. Demo: admin@nepaltreks.com / admin123");
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        if (signInError.message.includes("Invalid login credentials")) {
+          setError("Invalid email or password. Please try again.");
+        } else {
+          setError(signInError.message);
+        }
+        setIsLoading(false);
+        return;
       }
+
+      if (data.user) {
+        navigate("/admin/dashboard");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-mountain flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-mountain flex items-center justify-center p-4">
@@ -72,7 +103,7 @@ export default function AdminLogin() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
-                  placeholder="admin@nepaltreks.com"
+                  placeholder="admin@example.com"
                   required
                 />
               </div>
@@ -105,17 +136,6 @@ export default function AdminLogin() {
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 pt-6 border-t border-border">
-            <p className="text-xs text-muted-foreground text-center mb-3">
-              Demo Credentials
-            </p>
-            <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-xs text-muted-foreground">
-              <p><strong>Email:</strong> admin@nepaltreks.com</p>
-              <p><strong>Password:</strong> admin123</p>
-            </div>
-          </div>
         </div>
 
         {/* Back Link */}
