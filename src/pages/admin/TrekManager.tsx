@@ -123,9 +123,47 @@ export default function TrekManager() {
     setItineraryItems(data || []);
   };
 
+  const handleAddItinerary = async () => {
+    if (!newItinerary.title || !editingTrek) return;
+
+    const { error } = await supabase
+      .from('trek_itineraries')
+      .insert({
+        trek_id: editingTrek.id,
+        day_number: newItinerary.day_number,
+        title: newItinerary.title,
+        description: newItinerary.description || null,
+        altitude: newItinerary.altitude || null,
+        distance: newItinerary.distance || null,
+        activities: [],
+      });
+
+    if (error) {
+      toast.error("Failed to add itinerary item");
+    } else {
+      toast.success("Itinerary item added");
+      fetchItineraryItems(editingTrek.id);
+      setNewItinerary({ day_number: 1, title: "", description: "", altitude: "", distance: "" });
+    }
+  };
+
+  const handleDeleteItinerary = async (id: string) => {
+    const { error } = await supabase
+      .from('trek_itineraries')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast.error("Failed to delete itinerary item");
+    } else {
+      toast.success("Itinerary item deleted");
+      fetchItineraryItems(editingTrek.id);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const trekData = {
       ...formData,
       price: formData.price ? parseFloat(formData.price) : null,
