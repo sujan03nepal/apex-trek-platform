@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import Index from "./pages/Index";
 import Treks from "./pages/Treks";
 import TrekDetail from "./pages/TrekDetail";
@@ -27,6 +28,8 @@ import AdminSettings from "./pages/admin/Settings";
 import AdminBookings from "./pages/admin/Bookings";
 import ContactSubmissions from "./pages/admin/ContactSubmissions";
 import AboutManager from "./pages/admin/AboutManager";
+import TeamManager from "./pages/admin/TeamManager";
+import FAQManager from "./pages/admin/FAQManager";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +39,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Index />} />
@@ -58,10 +62,12 @@ const App = () => (
           <Route path="/admin/treks" element={<TrekManager />} />
           <Route path="/admin/blog" element={<BlogManager />} />
           <Route path="/admin/bookings" element={<AdminBookings />} />
-          <Route path="/admin/contact" element={<ContactSubmissions />} />
+          <Route path="/admin/contacts" element={<ContactSubmissions />} />
           <Route path="/admin/media" element={<MediaLibrary />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
           <Route path="/admin/about" element={<AboutManager />} />
+          <Route path="/admin/team" element={<TeamManager />} />
+          <Route path="/admin/faqs" element={<FAQManager />} />
 
           {/* Catch-all */}
           <Route path="*" element={<NotFound />} />

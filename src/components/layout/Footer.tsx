@@ -1,47 +1,50 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mountain, Mail, Phone, MapPin, Facebook, Instagram, Youtube, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/hooks/useSettings";
+import { useTreks } from "@/hooks/useTreks";
 
-const footerLinks = {
-  treks: [
-    { name: "Everest Base Camp", href: "/treks/everest-base-camp" },
-    { name: "Annapurna Circuit", href: "/treks/annapurna-circuit" },
-    { name: "Langtang Valley", href: "/treks/langtang-valley" },
-    { name: "Manaslu Circuit", href: "/treks/manaslu-circuit" },
-    { name: "All Treks", href: "/treks" },
-  ],
-  company: [
-    { name: "About Us", href: "/about" },
-    { name: "Our Team", href: "/about#team" },
-    { name: "Blog", href: "/blog" },
-    { name: "Testimonials", href: "/#testimonials" },
-    { name: "Contact", href: "/contact" },
-  ],
-  support: [
-    { name: "FAQs", href: "/faq" },
-    { name: "Gallery", href: "/gallery" },
-    { name: "Terms & Conditions", href: "/terms" },
-    { name: "Privacy Policy", href: "/privacy" },
-    { name: "Booking Info", href: "/contact" },
-  ],
-};
+const companyLinks = [
+  { name: "About Us", href: "/about" },
+  { name: "Our Team", href: "/about#team" },
+  { name: "Blog", href: "/blog" },
+  { name: "Testimonials", href: "/#testimonials" },
+  { name: "Contact", href: "/contact" },
+];
+
+const supportLinks = [
+  { name: "FAQs", href: "/faq" },
+  { name: "Gallery", href: "/gallery" },
+  { name: "Terms & Conditions", href: "/terms" },
+  { name: "Privacy Policy", href: "/privacy" },
+  { name: "Booking Info", href: "/contact" },
+];
 
 export function Footer() {
   const { settings } = useSettings();
+  const { treks } = useTreks();
+  const navigate = useNavigate();
+
+  // Get published treks for the footer (limit to 4 + "All Treks")
+  const publishedTreks = treks.filter(t => t.is_published).slice(0, 4);
 
   const socialLinks = [
     { name: "Facebook", icon: Facebook, href: settings?.facebook_url || "#" },
     { name: "Instagram", icon: Instagram, href: settings?.instagram_url || "#" },
     { name: "Youtube", icon: Youtube, href: settings?.youtube_url || "#" },
     { name: "Twitter", icon: Twitter, href: settings?.twitter_url || "#" },
-  ];
+  ].filter(s => s.href && s.href !== "#");
 
   const primaryEmail = settings?.email_addresses?.[0] || "info@nepaltreks.com";
   const primaryPhone = settings?.phone_numbers?.[0] || "+977 123 456 7890";
   const address = settings?.office_address || "Thamel, Kathmandu, Nepal";
   const footerText = settings?.footer_text || "Your trusted partner for authentic Himalayan adventures since 2010. We create life-changing experiences in the world's most spectacular mountains.";
   const copyrightText = settings?.copyright_text || `© ${new Date().getFullYear()} Nepal Treks. All rights reserved.`;
+
+  const handleLinkClick = (href: string) => {
+    navigate(href);
+    window.scrollTo(0, 0);
+  };
 
   return (
     <footer className="bg-gradient-mountain text-primary-foreground">
@@ -74,15 +77,15 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand Column */}
           <div className="lg:col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
+            <button onClick={() => handleLinkClick("/")} className="flex items-center gap-2 mb-4">
               <div className="p-2 rounded-lg bg-accent">
                 <Mountain className="h-6 w-6 text-accent-foreground" />
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col text-left">
                 <span className="font-serif text-xl font-bold">Nepal Treks</span>
                 <span className="text-xs tracking-widest uppercase opacity-70">Adventure Awaits</span>
               </div>
-            </Link>
+            </button>
             <p className="text-primary-foreground/70 mb-6 max-w-sm">
               {footerText}
             </p>
@@ -102,20 +105,28 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Trek Links */}
+          {/* Trek Links - Dynamic from database */}
           <div>
             <h4 className="font-semibold text-lg mb-4">Popular Treks</h4>
             <ul className="space-y-2">
-              {footerLinks.treks.map((link) => (
-                <li key={link.name}>
-                  <Link 
-                    to={link.href}
-                    className="text-sm text-primary-foreground/70 hover:text-accent transition-colors"
+              {publishedTreks.map((trek) => (
+                <li key={trek.id}>
+                  <button 
+                    onClick={() => handleLinkClick(`/treks/${trek.slug}`)}
+                    className="text-sm text-primary-foreground/70 hover:text-accent transition-colors text-left"
                   >
-                    {link.name}
-                  </Link>
+                    {trek.name}
+                  </button>
                 </li>
               ))}
+              <li>
+                <button 
+                  onClick={() => handleLinkClick("/treks")}
+                  className="text-sm text-primary-foreground/70 hover:text-accent transition-colors text-left"
+                >
+                  All Treks
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -123,14 +134,14 @@ export function Footer() {
           <div>
             <h4 className="font-semibold text-lg mb-4">Company</h4>
             <ul className="space-y-2">
-              {footerLinks.company.map((link) => (
+              {companyLinks.map((link) => (
                 <li key={link.name}>
-                  <Link 
-                    to={link.href}
-                    className="text-sm text-primary-foreground/70 hover:text-accent transition-colors"
+                  <button 
+                    onClick={() => handleLinkClick(link.href)}
+                    className="text-sm text-primary-foreground/70 hover:text-accent transition-colors text-left"
                   >
                     {link.name}
-                  </Link>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -140,14 +151,14 @@ export function Footer() {
           <div>
             <h4 className="font-semibold text-lg mb-4">Support</h4>
             <ul className="space-y-2">
-              {footerLinks.support.map((link) => (
+              {supportLinks.map((link) => (
                 <li key={link.name}>
-                  <Link 
-                    to={link.href}
-                    className="text-sm text-primary-foreground/70 hover:text-accent transition-colors"
+                  <button 
+                    onClick={() => handleLinkClick(link.href)}
+                    className="text-sm text-primary-foreground/70 hover:text-accent transition-colors text-left"
                   >
                     {link.name}
-                  </Link>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -162,27 +173,29 @@ export function Footer() {
             <p className="text-sm text-primary-foreground/60">
               {copyrightText}
             </p>
-            <div className="flex items-center gap-4">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.name}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-full bg-primary-foreground/10 hover:bg-accent hover:text-accent-foreground transition-all duration-200"
-                  aria-label={social.name}
-                >
-                  <social.icon className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
+            {socialLinks.length > 0 && (
+              <div className="flex items-center gap-4">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-full bg-primary-foreground/10 hover:bg-accent hover:text-accent-foreground transition-all duration-200"
+                    aria-label={social.name}
+                  >
+                    <social.icon className="h-4 w-4" />
+                  </a>
+                ))}
+              </div>
+            )}
             <div className="flex items-center gap-4 text-sm text-primary-foreground/60">
-              <Link to="/privacy" className="hover:text-accent transition-colors">
+              <button onClick={() => handleLinkClick("/privacy")} className="hover:text-accent transition-colors">
                 Privacy Policy
-              </Link>
-              <Link to="/terms" className="hover:text-accent transition-colors">
+              </button>
+              <button onClick={() => handleLinkClick("/terms")} className="hover:text-accent transition-colors">
                 Terms of Service
-              </Link>
+              </button>
             </div>
           </div>
         </div>

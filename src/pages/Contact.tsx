@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useSettings } from "@/hooks/useSettings";
+import { useTreks } from "@/hooks/useTreks";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Mail, Phone, MapPin, Clock, Send, MessageCircle, 
   Facebook, Instagram, Youtube 
@@ -9,29 +12,55 @@ import {
 
 export default function Contact() {
   const { toast } = useToast();
+  const { settings } = useSettings();
+  const { treks } = useTreks();
   const [formData, setFormData] = useState({
-    name: "",
+    full_name: "",
     email: "",
     phone: "",
-    trek: "",
+    subject: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const primaryEmail = settings?.email_addresses?.[0] || "info@nepaltreks.com";
+  const secondaryEmail = settings?.email_addresses?.[1] || "booking@nepaltreks.com";
+  const primaryPhone = settings?.phone_numbers?.[0] || "+977 123 456 7890";
+  const secondaryPhone = settings?.whatsapp || settings?.phone_numbers?.[1] || "+977 987 654 3210";
+  const address = settings?.office_address || "Thamel, Kathmandu\nNepal 44600";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const { error } = await supabase
+        .from('contact_submissions')
+        .insert({
+          full_name: formData.full_name,
+          email: formData.email,
+          phone: formData.phone || null,
+          subject: formData.subject || null,
+          message: formData.message,
+        });
 
-    toast({
-      title: "Message Sent!",
-      description: "We'll get back to you within 24 hours.",
-    });
+      if (error) throw error;
 
-    setFormData({ name: "", email: "", phone: "", trek: "", message: "" });
-    setIsSubmitting(false);
+      toast({
+        title: "Message Sent!",
+        description: "We'll get back to you within 24 hours.",
+      });
+
+      setFormData({ full_name: "", email: "", phone: "", subject: "", message: "" });
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -67,10 +96,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Office Address</h3>
-                    <p className="text-muted-foreground">
-                      Thamel, Kathmandu<br />
-                      Nepal 44600
-                    </p>
+                    <p className="text-muted-foreground whitespace-pre-line">{address}</p>
                   </div>
                 </div>
 
@@ -80,13 +106,14 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Phone</h3>
-                    <a href="tel:+9771234567890" className="text-muted-foreground hover:text-accent transition-colors">
-                      +977 123 456 7890
+                    <a href={`tel:${primaryPhone.replace(/\s/g, '')}`} className="text-muted-foreground hover:text-accent transition-colors block">
+                      {primaryPhone}
                     </a>
-                    <br />
-                    <a href="tel:+9779876543210" className="text-muted-foreground hover:text-accent transition-colors">
-                      +977 987 654 3210 (WhatsApp)
-                    </a>
+                    {secondaryPhone && (
+                      <a href={`tel:${secondaryPhone.replace(/\s/g, '')}`} className="text-muted-foreground hover:text-accent transition-colors block">
+                        {secondaryPhone} (WhatsApp)
+                      </a>
+                    )}
                   </div>
                 </div>
 
@@ -96,13 +123,14 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Email</h3>
-                    <a href="mailto:info@nepaltreks.com" className="text-muted-foreground hover:text-accent transition-colors">
-                      info@nepaltreks.com
+                    <a href={`mailto:${primaryEmail}`} className="text-muted-foreground hover:text-accent transition-colors block">
+                      {primaryEmail}
                     </a>
-                    <br />
-                    <a href="mailto:booking@nepaltreks.com" className="text-muted-foreground hover:text-accent transition-colors">
-                      booking@nepaltreks.com
-                    </a>
+                    {secondaryEmail && secondaryEmail !== primaryEmail && (
+                      <a href={`mailto:${secondaryEmail}`} className="text-muted-foreground hover:text-accent transition-colors block">
+                        {secondaryEmail}
+                      </a>
+                    )}
                   </div>
                 </div>
 
@@ -124,18 +152,26 @@ export default function Contact() {
               <div className="mt-8 pt-8 border-t border-border">
                 <h3 className="font-semibold text-foreground mb-4">Follow Us</h3>
                 <div className="flex gap-3">
-                  <a href="#" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors">
-                    <Facebook className="h-5 w-5" />
-                  </a>
-                  <a href="#" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors">
-                    <Instagram className="h-5 w-5" />
-                  </a>
-                  <a href="#" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors">
-                    <Youtube className="h-5 w-5" />
-                  </a>
-                  <a href="#" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors">
-                    <MessageCircle className="h-5 w-5" />
-                  </a>
+                  {settings?.facebook_url && (
+                    <a href={settings.facebook_url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors">
+                      <Facebook className="h-5 w-5" />
+                    </a>
+                  )}
+                  {settings?.instagram_url && (
+                    <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors">
+                      <Instagram className="h-5 w-5" />
+                    </a>
+                  )}
+                  {settings?.youtube_url && (
+                    <a href={settings.youtube_url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors">
+                      <Youtube className="h-5 w-5" />
+                    </a>
+                  )}
+                  {settings?.whatsapp && (
+                    <a href={`https://wa.me/${settings.whatsapp.replace(/\s/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors">
+                      <MessageCircle className="h-5 w-5" />
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
@@ -159,8 +195,8 @@ export default function Contact() {
                       <input
                         type="text"
                         required
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        value={formData.full_name}
+                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                         className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
                         placeholder="John Doe"
                       />
@@ -198,16 +234,15 @@ export default function Contact() {
                         Interested Trek
                       </label>
                       <select
-                        value={formData.trek}
-                        onChange={(e) => setFormData({ ...formData, trek: e.target.value })}
+                        value={formData.subject}
+                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                         className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-accent"
                       >
                         <option value="">Select a trek</option>
-                        <option value="everest-base-camp">Everest Base Camp</option>
-                        <option value="annapurna-circuit">Annapurna Circuit</option>
-                        <option value="langtang-valley">Langtang Valley</option>
-                        <option value="manaslu-circuit">Manaslu Circuit</option>
-                        <option value="other">Other / Not Sure</option>
+                        {treks.filter(t => t.is_published).map(trek => (
+                          <option key={trek.id} value={trek.name}>{trek.name}</option>
+                        ))}
+                        <option value="Other">Other / Not Sure</option>
                       </select>
                     </div>
                   </div>
@@ -252,7 +287,7 @@ export default function Contact() {
       {/* Map Section */}
       <section className="h-[400px] bg-muted">
         <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.0478619839087!2d85.30755831506293!3d27.71473798279149!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb18fcb77fd4f3%3A0x58099b1deffed8d4!2sThamel%2C%20Kathmandu%2044600%2C%20Nepal!5e0!3m2!1sen!2sus!4v1645012345678!5m2!1sen!2sus"
+          src={settings?.map_embed_link || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.0478619839087!2d85.30755831506293!3d27.71473798279149!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb18fcb77fd4f3%3A0x58099b1deffed8d4!2sThamel%2C%20Kathmandu%2044600%2C%20Nepal!5e0!3m2!1sen!2sus!4v1645012345678!5m2!1sen!2sus"}
           width="100%"
           height="100%"
           style={{ border: 0 }}
