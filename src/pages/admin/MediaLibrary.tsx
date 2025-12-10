@@ -8,10 +8,13 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function MediaLibrary() {
-  const { media, loading, deleteMedia } = useMediaLibrary();
+  const { media, loading, deleteMedia, addMedia } = useMediaLibrary();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [uploading, setUploading] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState<Map<string, number>>(new Map());
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const categories = ["all", "hero", "gallery", "logo", "blog"];
 
