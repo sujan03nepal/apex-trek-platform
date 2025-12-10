@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Tables, TablesUpdate } from '@/integrations/supabase/types';
+import { Tables, TablesUpdate, TablesInsert } from '@/integrations/supabase/types';
 
 type Booking = Tables<'bookings'>;
 type BookingUpdate = TablesUpdate<'bookings'>;
+type BookingInsert = TablesInsert<'bookings'>;
 
 export function useBookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
