@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useMediaLibrary } from "@/hooks/useMediaLibrary";
-import { Upload, Trash2, Copy, Grid, List, Search, Loader2 } from "lucide-react";
+import { Upload, Trash2, Copy, Grid, List, Search, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function MediaLibrary() {
   const { media, loading, deleteMedia } = useMediaLibrary();
