@@ -49,7 +49,7 @@ export default function AdminDashboard() {
       icon: Mail,
       color: "text-sapphire",
       bgColor: "bg-sapphire/10",
-      link: "/admin/contact",
+      link: "/admin/contacts",
     },
   ];
 
