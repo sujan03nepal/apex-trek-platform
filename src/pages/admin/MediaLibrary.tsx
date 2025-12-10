@@ -1,16 +1,20 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useMediaLibrary } from "@/hooks/useMediaLibrary";
-import { Upload, Trash2, Copy, Grid, List, Search, Loader2 } from "lucide-react";
+import { Upload, Trash2, Copy, Grid, List, Search, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function MediaLibrary() {
-  const { media, loading, deleteMedia } = useMediaLibrary();
+  const { media, loading, deleteMedia, addMedia } = useMediaLibrary();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [uploading, setUploading] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState<Map<string, number>>(new Map());
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const categories = ["all", "hero", "gallery", "logo", "blog"];
 
@@ -27,6 +31,79 @@ export default function MediaLibrary() {
       toast.error("Failed to delete file: " + error);
     } else {
       toast.success("File deleted successfully!");
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    setUploading(true);
+    const uploadPromises = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileId = `${Date.now()}-${i}`;
+      setUploadingFiles(prev => new Map(prev).set(fileId, 0));
+
+      uploadPromises.push(
+        (async () => {
+          try {
+            // Upload to Supabase Storage
+            const fileName = `${Date.now()}-${i}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+            const { data: storageData, error: storageError } = await supabase.storage
+              .from('media')
+              .upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: false,
+              });
+
+            if (storageError) throw storageError;
+
+            // Get public URL
+            const { data: urlData } = supabase.storage
+              .from('media')
+              .getPublicUrl(fileName);
+
+            // Add to database
+            const { error: dbError } = await addMedia({
+              file_name: file.name,
+              file_url: urlData.publicUrl,
+              file_type: file.type.startsWith('image') ? 'image' : file.type.startsWith('video') ? 'video' : 'document',
+              mime_type: file.type,
+              file_size_bytes: file.size,
+              category: selectedCategory === 'all' ? 'general' : selectedCategory,
+              tags: [],
+              is_public: true,
+            });
+
+            if (dbError) throw dbError;
+
+            setUploadingFiles(prev => {
+              const newMap = new Map(prev);
+              newMap.delete(fileId);
+              return newMap;
+            });
+
+            toast.success(`${file.name} uploaded successfully!`);
+          } catch (error: any) {
+            toast.error(`Failed to upload ${file.name}: ${error.message}`);
+            setUploadingFiles(prev => {
+              const newMap = new Map(prev);
+              newMap.delete(fileId);
+              return newMap;
+            });
+          }
+        })()
+      );
+    }
+
+    await Promise.all(uploadPromises);
+    setUploading(false);
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -66,10 +143,22 @@ export default function MediaLibrary() {
               Manage your website images and media files
             </p>
           </div>
-          <Button variant="gold" disabled>
+          <Button
+            variant="gold"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+          >
             <Upload className="h-4 w-4 mr-2" />
-            Upload Files (Coming Soon)
+            {uploading ? "Uploading..." : "Upload Files"}
           </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            hidden
+            onChange={handleFileSelect}
+            accept="image/*,video/*,.pdf,.doc,.docx"
+          />
         </div>
 
         {/* Search & Filters */}

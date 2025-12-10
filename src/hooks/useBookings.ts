@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Tables, TablesUpdate } from '@/integrations/supabase/types';
+import { Tables, TablesUpdate, TablesInsert } from '@/integrations/supabase/types';
 
 type Booking = Tables<'bookings'>;
 type BookingUpdate = TablesUpdate<'bookings'>;
+type BookingInsert = TablesInsert<'bookings'>;
 
 export function useBookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -59,9 +60,25 @@ export function useBookings() {
     }
   }, []);
 
+  const createBooking = useCallback(async (booking: BookingInsert) => {
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert(booking)
+        .select()
+        .single();
+
+      if (error) throw error;
+      setBookings(prev => [data, ...prev]);
+      return { data, error: null };
+    } catch (err: any) {
+      return { data: null, error: err.message };
+    }
+  }, []);
+
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
 
-  return { bookings, loading, error, fetchBookings, updateBooking, deleteBooking };
+  return { bookings, loading, error, fetchBookings, updateBooking, deleteBooking, createBooking };
 }

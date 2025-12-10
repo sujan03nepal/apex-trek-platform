@@ -2,9 +2,10 @@ import { useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, Trash2, Plus, Search, Filter, Loader2, Eye, EyeOff } from "lucide-react";
+import { Edit2, Trash2, Plus, Search, Filter, Loader2, Eye, EyeOff, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useTreks } from "@/hooks/useTreks";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,15 @@ export default function TrekManager() {
   const [selectedTreks, setSelectedTreks] = useState<string[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTrek, setEditingTrek] = useState<any>(null);
+  const [showItinerary, setShowItinerary] = useState(false);
+  const [itineraryItems, setItineraryItems] = useState<any[]>([]);
+  const [newItinerary, setNewItinerary] = useState({
+    day_number: 1,
+    title: "",
+    description: "",
+    altitude: "",
+    distance: "",
+  });
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -31,6 +41,10 @@ export default function TrekManager() {
     is_published: true,
     is_featured: false,
     featured_image_url: "",
+    best_seasons: [] as string[],
+    highlights: [] as string[],
+    includes: [] as string[],
+    excludes: [] as string[],
   });
 
   const filteredTreks = treks.filter(trek =>
@@ -66,7 +80,13 @@ export default function TrekManager() {
       is_published: true,
       is_featured: false,
       featured_image_url: "",
+      best_seasons: [],
+      highlights: [],
+      includes: [],
+      excludes: [],
     });
+    setItineraryItems([]);
+    setShowItinerary(false);
     setIsFormOpen(true);
   };
 
@@ -84,13 +104,66 @@ export default function TrekManager() {
       is_published: trek.is_published ?? true,
       is_featured: trek.is_featured ?? false,
       featured_image_url: trek.featured_image_url || "",
+      best_seasons: trek.best_seasons || [],
+      highlights: trek.highlights || [],
+      includes: trek.includes || [],
+      excludes: trek.excludes || [],
     });
+    fetchItineraryItems(trek.id);
+    setShowItinerary(false);
     setIsFormOpen(true);
+  };
+
+  const fetchItineraryItems = async (trekId: string) => {
+    const { data } = await supabase
+      .from('trek_itineraries')
+      .select('*')
+      .eq('trek_id', trekId)
+      .order('day_number');
+    setItineraryItems(data || []);
+  };
+
+  const handleAddItinerary = async () => {
+    if (!newItinerary.title || !editingTrek) return;
+
+    const { error } = await supabase
+      .from('trek_itineraries')
+      .insert({
+        trek_id: editingTrek.id,
+        day_number: newItinerary.day_number,
+        title: newItinerary.title,
+        description: newItinerary.description || null,
+        altitude: newItinerary.altitude || null,
+        distance: newItinerary.distance || null,
+        activities: [],
+      });
+
+    if (error) {
+      toast.error("Failed to add itinerary item");
+    } else {
+      toast.success("Itinerary item added");
+      fetchItineraryItems(editingTrek.id);
+      setNewItinerary({ day_number: 1, title: "", description: "", altitude: "", distance: "" });
+    }
+  };
+
+  const handleDeleteItinerary = async (id: string) => {
+    const { error } = await supabase
+      .from('trek_itineraries')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast.error("Failed to delete itinerary item");
+    } else {
+      toast.success("Itinerary item deleted");
+      fetchItineraryItems(editingTrek.id);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const trekData = {
       ...formData,
       price: formData.price ? parseFloat(formData.price) : null,
@@ -136,6 +209,21 @@ export default function TrekManager() {
     }
   };
 
+  const addArrayItem = (field: 'includes' | 'excludes' | 'highlights' | 'best_seasons', value: string) => {
+    if (!value.trim()) return;
+    setFormData(prev => ({
+      ...prev,
+      [field]: [...(prev[field] || []), value]
+    }));
+  };
+
+  const removeArrayItem = (field: 'includes' | 'excludes' | 'highlights' | 'best_seasons', index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -165,11 +253,12 @@ export default function TrekManager() {
                 New Trek
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingTrek ? "Edit Trek" : "Create New Trek"}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Basic Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Name *</label>
@@ -192,6 +281,7 @@ export default function TrekManager() {
                     />
                   </div>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-1">Short Description</label>
                   <input
@@ -201,6 +291,7 @@ export default function TrekManager() {
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background"
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-1">Description</label>
                   <textarea
@@ -210,6 +301,8 @@ export default function TrekManager() {
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background resize-none"
                   />
                 </div>
+
+                {/* Trek Details */}
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Duration</label>
@@ -241,6 +334,7 @@ export default function TrekManager() {
                     />
                   </div>
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Difficulty</label>
@@ -266,7 +360,195 @@ export default function TrekManager() {
                     />
                   </div>
                 </div>
-                <div className="flex gap-4">
+
+                {/* Array Fields */}
+                <div className="border-t pt-4 mt-4">
+                  <h4 className="font-semibold mb-3">Trip Highlights</h4>
+                  <div className="space-y-2 mb-2">
+                    {formData.highlights.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="flex-1 px-3 py-2 bg-muted rounded">{item}</span>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeArrayItem('highlights', idx)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      id="highlight-input"
+                      placeholder="Add highlight"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const input = e.target as HTMLInputElement;
+                          addArrayItem('highlights', input.value);
+                          input.value = '';
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-sm"
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      const input = document.getElementById('highlight-input') as HTMLInputElement;
+                      addArrayItem('highlights', input.value);
+                      input.value = '';
+                    }}>
+                      Add
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Cost Details */}
+                <div className="border-t pt-4">
+                  <h4 className="font-semibold mb-3">Cost Includes</h4>
+                  <div className="space-y-2 mb-2">
+                    {formData.includes.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="flex-1 px-3 py-2 bg-muted rounded">{item}</span>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeArrayItem('includes', idx)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      id="includes-input"
+                      placeholder="Add included item"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const input = e.target as HTMLInputElement;
+                          addArrayItem('includes', input.value);
+                          input.value = '';
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-sm"
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      const input = document.getElementById('includes-input') as HTMLInputElement;
+                      addArrayItem('includes', input.value);
+                      input.value = '';
+                    }}>
+                      Add
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="font-semibold mb-3">Cost Excludes</h4>
+                  <div className="space-y-2 mb-2">
+                    {formData.excludes.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="flex-1 px-3 py-2 bg-muted rounded">{item}</span>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeArrayItem('excludes', idx)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      id="excludes-input"
+                      placeholder="Add excluded item"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const input = e.target as HTMLInputElement;
+                          addArrayItem('excludes', input.value);
+                          input.value = '';
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-sm"
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      const input = document.getElementById('excludes-input') as HTMLInputElement;
+                      addArrayItem('excludes', input.value);
+                      input.value = '';
+                    }}>
+                      Add
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Itinerary Section */}
+                {editingTrek && (
+                  <div className="border-t pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowItinerary(!showItinerary)}
+                      className="flex items-center gap-2 font-semibold mb-3 hover:text-accent"
+                    >
+                      {showItinerary ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      Manage Itinerary ({itineraryItems.length} days)
+                    </button>
+
+                    {showItinerary && (
+                      <div className="space-y-3 ml-6">
+                        {itineraryItems.map(item => (
+                          <div key={item.id} className="bg-muted p-3 rounded-lg flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="font-medium">Day {item.day_number}: {item.title}</p>
+                              {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+                            </div>
+                            <Button type="button" variant="ghost" size="sm" onClick={() => handleDeleteItinerary(item.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+
+                        <div className="bg-accent/10 p-3 rounded-lg space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <input
+                              type="number"
+                              value={newItinerary.day_number}
+                              onChange={(e) => setNewItinerary({...newItinerary, day_number: parseInt(e.target.value)})}
+                              placeholder="Day"
+                              className="px-2 py-1 rounded border border-border bg-background text-sm"
+                              min="1"
+                            />
+                            <input
+                              type="text"
+                              value={newItinerary.title}
+                              onChange={(e) => setNewItinerary({...newItinerary, title: e.target.value})}
+                              placeholder="Title"
+                              className="px-2 py-1 rounded border border-border bg-background text-sm"
+                            />
+                          </div>
+                          <textarea
+                            value={newItinerary.description}
+                            onChange={(e) => setNewItinerary({...newItinerary, description: e.target.value})}
+                            placeholder="Description"
+                            rows={2}
+                            className="w-full px-2 py-1 rounded border border-border bg-background text-sm resize-none"
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <input
+                              type="text"
+                              value={newItinerary.altitude}
+                              onChange={(e) => setNewItinerary({...newItinerary, altitude: e.target.value})}
+                              placeholder="Altitude (e.g., 3000m)"
+                              className="px-2 py-1 rounded border border-border bg-background text-sm"
+                            />
+                            <input
+                              type="text"
+                              value={newItinerary.distance}
+                              onChange={(e) => setNewItinerary({...newItinerary, distance: e.target.value})}
+                              placeholder="Distance (e.g., 15km)"
+                              className="px-2 py-1 rounded border border-border bg-background text-sm"
+                            />
+                          </div>
+                          <Button type="button" variant="outline" size="sm" className="w-full" onClick={handleAddItinerary}>
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add Day
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex gap-4 border-t pt-4">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -284,7 +566,8 @@ export default function TrekManager() {
                     <span className="text-sm">Featured</span>
                   </label>
                 </div>
-                <div className="flex justify-end gap-2 pt-4">
+
+                <div className="flex justify-end gap-2 pt-4 border-t">
                   <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
                     Cancel
                   </Button>
