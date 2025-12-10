@@ -49,7 +49,7 @@ export default function AdminDashboard() {
       icon: Mail,
       color: "text-sapphire",
       bgColor: "bg-sapphire/10",
-      link: "/admin/contact",
+      link: "/admin/contacts",
     },
   ];
 
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
               </Button>
 
               <Button asChild variant="outline" className="w-full justify-start">
-                <Link to="/admin/contact">
+                <Link to="/admin/contacts">
                   View Messages
                   <ArrowRight className="h-4 w-4 ml-auto" />
                 </Link>
