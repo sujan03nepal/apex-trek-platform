@@ -20,6 +20,15 @@ export default function TrekManager() {
   const [selectedTreks, setSelectedTreks] = useState<string[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTrek, setEditingTrek] = useState<any>(null);
+  const [showItinerary, setShowItinerary] = useState(false);
+  const [itineraryItems, setItineraryItems] = useState<any[]>([]);
+  const [newItinerary, setNewItinerary] = useState({
+    day_number: 1,
+    title: "",
+    description: "",
+    altitude: "",
+    distance: "",
+  });
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -32,6 +41,10 @@ export default function TrekManager() {
     is_published: true,
     is_featured: false,
     featured_image_url: "",
+    best_seasons: [] as string[],
+    highlights: [] as string[],
+    includes: [] as string[],
+    excludes: [] as string[],
   });
 
   const filteredTreks = treks.filter(trek =>
