@@ -209,6 +209,21 @@ export default function TrekManager() {
     }
   };
 
+  const addArrayItem = (field: 'includes' | 'excludes' | 'highlights' | 'best_seasons', value: string) => {
+    if (!value.trim()) return;
+    setFormData(prev => ({
+      ...prev,
+      [field]: [...(prev[field] || []), value]
+    }));
+  };
+
+  const removeArrayItem = (field: 'includes' | 'excludes' | 'highlights' | 'best_seasons', index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+  };
+
   if (loading) {
     return (
       <AdminLayout>
