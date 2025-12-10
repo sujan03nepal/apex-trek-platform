@@ -253,11 +253,12 @@ export default function TrekManager() {
                 New Trek
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingTrek ? "Edit Trek" : "Create New Trek"}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Basic Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Name *</label>
@@ -280,6 +281,7 @@ export default function TrekManager() {
                     />
                   </div>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-1">Short Description</label>
                   <input
@@ -289,6 +291,7 @@ export default function TrekManager() {
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background"
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium mb-1">Description</label>
                   <textarea
@@ -298,6 +301,8 @@ export default function TrekManager() {
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background resize-none"
                   />
                 </div>
+
+                {/* Trek Details */}
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Duration</label>
@@ -329,6 +334,7 @@ export default function TrekManager() {
                     />
                   </div>
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Difficulty</label>
@@ -354,7 +360,195 @@ export default function TrekManager() {
                     />
                   </div>
                 </div>
-                <div className="flex gap-4">
+
+                {/* Array Fields */}
+                <div className="border-t pt-4 mt-4">
+                  <h4 className="font-semibold mb-3">Trip Highlights</h4>
+                  <div className="space-y-2 mb-2">
+                    {formData.highlights.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="flex-1 px-3 py-2 bg-muted rounded">{item}</span>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeArrayItem('highlights', idx)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      id="highlight-input"
+                      placeholder="Add highlight"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const input = e.target as HTMLInputElement;
+                          addArrayItem('highlights', input.value);
+                          input.value = '';
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-sm"
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      const input = document.getElementById('highlight-input') as HTMLInputElement;
+                      addArrayItem('highlights', input.value);
+                      input.value = '';
+                    }}>
+                      Add
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Cost Details */}
+                <div className="border-t pt-4">
+                  <h4 className="font-semibold mb-3">Cost Includes</h4>
+                  <div className="space-y-2 mb-2">
+                    {formData.includes.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="flex-1 px-3 py-2 bg-muted rounded">{item}</span>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeArrayItem('includes', idx)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      id="includes-input"
+                      placeholder="Add included item"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const input = e.target as HTMLInputElement;
+                          addArrayItem('includes', input.value);
+                          input.value = '';
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-sm"
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      const input = document.getElementById('includes-input') as HTMLInputElement;
+                      addArrayItem('includes', input.value);
+                      input.value = '';
+                    }}>
+                      Add
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="font-semibold mb-3">Cost Excludes</h4>
+                  <div className="space-y-2 mb-2">
+                    {formData.excludes.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="flex-1 px-3 py-2 bg-muted rounded">{item}</span>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeArrayItem('excludes', idx)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      id="excludes-input"
+                      placeholder="Add excluded item"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          const input = e.target as HTMLInputElement;
+                          addArrayItem('excludes', input.value);
+                          input.value = '';
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-sm"
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      const input = document.getElementById('excludes-input') as HTMLInputElement;
+                      addArrayItem('excludes', input.value);
+                      input.value = '';
+                    }}>
+                      Add
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Itinerary Section */}
+                {editingTrek && (
+                  <div className="border-t pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowItinerary(!showItinerary)}
+                      className="flex items-center gap-2 font-semibold mb-3 hover:text-accent"
+                    >
+                      {showItinerary ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      Manage Itinerary ({itineraryItems.length} days)
+                    </button>
+
+                    {showItinerary && (
+                      <div className="space-y-3 ml-6">
+                        {itineraryItems.map(item => (
+                          <div key={item.id} className="bg-muted p-3 rounded-lg flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="font-medium">Day {item.day_number}: {item.title}</p>
+                              {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+                            </div>
+                            <Button type="button" variant="ghost" size="sm" onClick={() => handleDeleteItinerary(item.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+
+                        <div className="bg-accent/10 p-3 rounded-lg space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <input
+                              type="number"
+                              value={newItinerary.day_number}
+                              onChange={(e) => setNewItinerary({...newItinerary, day_number: parseInt(e.target.value)})}
+                              placeholder="Day"
+                              className="px-2 py-1 rounded border border-border bg-background text-sm"
+                              min="1"
+                            />
+                            <input
+                              type="text"
+                              value={newItinerary.title}
+                              onChange={(e) => setNewItinerary({...newItinerary, title: e.target.value})}
+                              placeholder="Title"
+                              className="px-2 py-1 rounded border border-border bg-background text-sm"
+                            />
+                          </div>
+                          <textarea
+                            value={newItinerary.description}
+                            onChange={(e) => setNewItinerary({...newItinerary, description: e.target.value})}
+                            placeholder="Description"
+                            rows={2}
+                            className="w-full px-2 py-1 rounded border border-border bg-background text-sm resize-none"
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <input
+                              type="text"
+                              value={newItinerary.altitude}
+                              onChange={(e) => setNewItinerary({...newItinerary, altitude: e.target.value})}
+                              placeholder="Altitude (e.g., 3000m)"
+                              className="px-2 py-1 rounded border border-border bg-background text-sm"
+                            />
+                            <input
+                              type="text"
+                              value={newItinerary.distance}
+                              onChange={(e) => setNewItinerary({...newItinerary, distance: e.target.value})}
+                              placeholder="Distance (e.g., 15km)"
+                              className="px-2 py-1 rounded border border-border bg-background text-sm"
+                            />
+                          </div>
+                          <Button type="button" variant="outline" size="sm" className="w-full" onClick={handleAddItinerary}>
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add Day
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex gap-4 border-t pt-4">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -372,7 +566,8 @@ export default function TrekManager() {
                     <span className="text-sm">Featured</span>
                   </label>
                 </div>
-                <div className="flex justify-end gap-2 pt-4">
+
+                <div className="flex justify-end gap-2 pt-4 border-t">
                   <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
                     Cancel
                   </Button>
