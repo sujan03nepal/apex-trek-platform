@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { 
   Mountain, Users, Award, Heart, Shield, Globe, 
-  ArrowRight, CheckCircle2 
+  ArrowRight, CheckCircle2, Loader2 
 } from "lucide-react";
+import { useTeamMembers } from "@/hooks/useTeamMembers";
 
 const stats = [
   { value: "15,000+", label: "Happy Trekkers" },
@@ -36,28 +37,10 @@ const values = [
   },
 ];
 
-const team = [
-  {
-    name: "Pemba Sherpa",
-    role: "Founder & Lead Guide",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-    bio: "Born in the Khumbu region, Pemba has summited Everest 12 times and has been guiding treks for over 20 years.",
-  },
-  {
-    name: "Maya Tamang",
-    role: "Operations Director",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400",
-    bio: "With a background in tourism management, Maya ensures every trek runs smoothly from booking to completion.",
-  },
-  {
-    name: "Dorje Lama",
-    role: "Senior Trek Leader",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400",
-    bio: "A certified mountaineer and wilderness first responder with expertise in high-altitude trekking.",
-  },
-];
-
 export default function About() {
+  const { teamMembers, loading } = useTeamMembers();
+  const activeTeamMembers = teamMembers.filter(m => m.is_active);
+
   return (
     <Layout>
       {/* Hero */}
@@ -194,29 +177,42 @@ export default function About() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {team.map((member) => (
-              <div
-                key={member.name}
-                className="bg-card rounded-2xl overflow-hidden border border-border shadow-soft group"
-              >
-                <div className="h-64 overflow-hidden">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-accent" />
+            </div>
+          ) : activeTeamMembers.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Team information coming soon...</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {activeTeamMembers.map((member) => (
+                <div
+                  key={member.id}
+                  className="bg-card rounded-2xl overflow-hidden border border-border shadow-soft group"
+                >
+                  <div className="h-64 overflow-hidden">
+                    <img
+                      src={member.image_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"}
+                      alt={member.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="p-6">
+                    <h3 className="font-serif text-xl font-bold text-foreground mb-1">
+                      {member.name}
+                    </h3>
+                    <p className="text-accent font-medium mb-3">{member.role}</p>
+                    {member.bio && (
+                      <p className="text-muted-foreground text-sm">{member.bio}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="p-6">
-                  <h3 className="font-serif text-xl font-bold text-foreground mb-1">
-                    {member.name}
-                  </h3>
-                  <p className="text-accent font-medium mb-3">{member.role}</p>
-                  <p className="text-muted-foreground text-sm">{member.bio}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
