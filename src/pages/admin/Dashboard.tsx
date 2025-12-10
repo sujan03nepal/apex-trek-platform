@@ -182,7 +182,7 @@ export default function AdminDashboard() {
               </Button>
 
               <Button asChild variant="outline" className="w-full justify-start">
-                <Link to="/admin/contact">
+                <Link to="/admin/contacts">
                   View Messages
                   <ArrowRight className="h-4 w-4 ml-auto" />
                 </Link>
