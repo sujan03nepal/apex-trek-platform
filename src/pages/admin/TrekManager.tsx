@@ -80,7 +80,13 @@ export default function TrekManager() {
       is_published: true,
       is_featured: false,
       featured_image_url: "",
+      best_seasons: [],
+      highlights: [],
+      includes: [],
+      excludes: [],
     });
+    setItineraryItems([]);
+    setShowItinerary(false);
     setIsFormOpen(true);
   };
 
@@ -98,8 +104,23 @@ export default function TrekManager() {
       is_published: trek.is_published ?? true,
       is_featured: trek.is_featured ?? false,
       featured_image_url: trek.featured_image_url || "",
+      best_seasons: trek.best_seasons || [],
+      highlights: trek.highlights || [],
+      includes: trek.includes || [],
+      excludes: trek.excludes || [],
     });
+    fetchItineraryItems(trek.id);
+    setShowItinerary(false);
     setIsFormOpen(true);
+  };
+
+  const fetchItineraryItems = async (trekId: string) => {
+    const { data } = await supabase
+      .from('trek_itineraries')
+      .select('*')
+      .eq('trek_id', trekId)
+      .order('day_number');
+    setItineraryItems(data || []);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
