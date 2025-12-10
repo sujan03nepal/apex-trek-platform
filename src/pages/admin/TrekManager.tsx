@@ -2,9 +2,10 @@ import { useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, Trash2, Plus, Search, Filter, Loader2, Eye, EyeOff } from "lucide-react";
+import { Edit2, Trash2, Plus, Search, Filter, Loader2, Eye, EyeOff, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useTreks } from "@/hooks/useTreks";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
