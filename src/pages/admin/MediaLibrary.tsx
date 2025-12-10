@@ -34,6 +34,79 @@ export default function MediaLibrary() {
     }
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    setUploading(true);
+    const uploadPromises = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileId = `${Date.now()}-${i}`;
+      setUploadingFiles(prev => new Map(prev).set(fileId, 0));
+
+      uploadPromises.push(
+        (async () => {
+          try {
+            // Upload to Supabase Storage
+            const fileName = `${Date.now()}-${i}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+            const { data: storageData, error: storageError } = await supabase.storage
+              .from('media')
+              .upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: false,
+              });
+
+            if (storageError) throw storageError;
+
+            // Get public URL
+            const { data: urlData } = supabase.storage
+              .from('media')
+              .getPublicUrl(fileName);
+
+            // Add to database
+            const { error: dbError } = await addMedia({
+              file_name: file.name,
+              file_url: urlData.publicUrl,
+              file_type: file.type.startsWith('image') ? 'image' : file.type.startsWith('video') ? 'video' : 'document',
+              mime_type: file.type,
+              file_size_bytes: file.size,
+              category: selectedCategory === 'all' ? 'general' : selectedCategory,
+              tags: [],
+              is_public: true,
+            });
+
+            if (dbError) throw dbError;
+
+            setUploadingFiles(prev => {
+              const newMap = new Map(prev);
+              newMap.delete(fileId);
+              return newMap;
+            });
+
+            toast.success(`${file.name} uploaded successfully!`);
+          } catch (error: any) {
+            toast.error(`Failed to upload ${file.name}: ${error.message}`);
+            setUploadingFiles(prev => {
+              const newMap = new Map(prev);
+              newMap.delete(fileId);
+              return newMap;
+            });
+          }
+        })()
+      );
+    }
+
+    await Promise.all(uploadPromises);
+    setUploading(false);
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleCopyUrl = (url: string) => {
     navigator.clipboard.writeText(url);
     toast.success("URL copied to clipboard!");
