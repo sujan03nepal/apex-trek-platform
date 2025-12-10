@@ -318,7 +318,7 @@ export default function TrekDetail() {
                 </div>
 
                 <Button variant="gold" size="xl" className="w-full mb-4" asChild>
-                  <Link to="/contact">Book This Trek</Link>
+                  <Link to={`/booking/${trek.slug}`}>Book This Trek</Link>
                 </Button>
 
                 <Button variant="outline" size="lg" className="w-full mb-6" asChild>
