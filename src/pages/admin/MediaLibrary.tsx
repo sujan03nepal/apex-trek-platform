@@ -143,10 +143,22 @@ export default function MediaLibrary() {
               Manage your website images and media files
             </p>
           </div>
-          <Button variant="gold" disabled>
+          <Button
+            variant="gold"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+          >
             <Upload className="h-4 w-4 mr-2" />
-            Upload Files (Coming Soon)
+            {uploading ? "Uploading..." : "Upload Files"}
           </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            hidden
+            onChange={handleFileSelect}
+            accept="image/*,video/*,.pdf,.doc,.docx"
+          />
         </div>
 
         {/* Search & Filters */}
